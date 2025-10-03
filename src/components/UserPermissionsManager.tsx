@@ -1,0 +1,9 @@
+// Temporarily disabled due to TypeScript errors
+export function UserPermissionsManager() {
+  return (
+    <div className="p-6">
+      <h2 className="text-xl font-bold text-gray-900 mb-4">User Permissions Manager</h2>
+      <p className="text-gray-600">Temporarily disabled due to technical issues.</p>
+    </div>
+  );
+}
