@@ -76,8 +76,8 @@ export function AllWorkshopsCalendarView() {
 
   const formatDate = (date: Date) => {
     const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "Januari", "Februari", "Maart", "April", "Mei", "Juni",
+      "Juli", "Augustus", "September", "Oktober", "November", "December"
     ];
     
     if (viewMode === 'month') {
@@ -94,7 +94,7 @@ export function AllWorkshopsCalendarView() {
 
   const renderMonthView = () => {
     const days = getDaysInMonth(currentDate);
-    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayNames = ["Zo", "Ma", "Di", "Wo", "Do", "Vr", "Za"];
 
     return (
       <div className="bg-white rounded-lg shadow-sm border">
@@ -146,7 +146,7 @@ export function AllWorkshopsCalendarView() {
                     ))}
                     {dayWorkshops.length > 3 && (
                       <div className="text-xs text-gray-500">
-                        +{dayWorkshops.length - 3} more
+                        +{dayWorkshops.length - 3} meer
                       </div>
                     )}
                   </div>
@@ -161,7 +161,7 @@ export function AllWorkshopsCalendarView() {
 
   const renderWeekView = () => {
     const weekDays = getWeekDays(currentDate);
-    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayNames = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
 
     return (
       <div className="bg-white rounded-lg shadow-sm border">
@@ -219,7 +219,7 @@ export function AllWorkshopsCalendarView() {
                 <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <p className="text-gray-500">No workshops scheduled for this day.</p>
+                <p className="text-gray-500">Geen workshops gepland voor deze dag.</p>
               </div>
             ) : (
               dayWorkshops.map((workshop) => (
@@ -253,7 +253,7 @@ export function AllWorkshopsCalendarView() {
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                             </svg>
-                            Max {workshop.maxParticipants} participants
+                            Max {workshop.maxParticipants} deelnemers
                           </div>
                         )}
                       </div>
@@ -266,7 +266,7 @@ export function AllWorkshopsCalendarView() {
                       )}
                       {workshop.price !== undefined && (
                         <div className="mt-2 text-lg font-semibold text-gray-900">
-                          {workshop.price > 0 ? `€${workshop.price}` : 'Free'}
+                          {workshop.price > 0 ? `€${workshop.price}` : 'Gratis'}
                         </div>
                       )}
                     </div>
@@ -285,8 +285,8 @@ export function AllWorkshopsCalendarView() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Workshop Overview</h2>
-          <p className="text-gray-600">View all workshops in calendar format</p>
+          <h2 className="text-2xl font-bold text-gray-900">Workshop Overzicht</h2>
+          <p className="text-gray-600">Bekijk alle workshops in kalender formaat</p>
         </div>
         
         {/* View Mode Selector */}
@@ -302,7 +302,7 @@ export function AllWorkshopsCalendarView() {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {mode}
+                {mode === 'month' ? 'Maand' : mode === 'week' ? 'Week' : 'Dag'}
               </button>
             ))}
           </div>
@@ -318,7 +318,7 @@ export function AllWorkshopsCalendarView() {
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Previous
+          Vorige
         </button>
         
         <h3 className="text-xl font-semibold text-gray-900">
@@ -329,7 +329,7 @@ export function AllWorkshopsCalendarView() {
           onClick={() => navigateDate('next')}
           className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
         >
-          Next
+          Volgende
           <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
@@ -340,7 +340,7 @@ export function AllWorkshopsCalendarView() {
       {workshops === undefined ? (
         <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto"></div>
-          <p className="text-gray-600 mt-2">Loading workshops...</p>
+          <p className="text-gray-600 mt-2">Workshops laden...</p>
         </div>
       ) : (
         <>

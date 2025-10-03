@@ -66,17 +66,17 @@ export function WorkshopCalendar() {
 
   const days = getDaysInMonth(currentDate);
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "Januari", "Februari", "Maart", "April", "Mei", "Juni",
+    "Juli", "Augustus", "September", "Oktober", "November", "December"
   ];
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayNames = ["Zo", "Ma", "Di", "Wo", "Do", "Vr", "Za"];
 
   const selectedDateWorkshops = selectedDate ? getWorkshopsForDate(selectedDate) : [];
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Workshop Calendar</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Workshop Kalender</h2>
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigateMonth('prev')}
@@ -160,7 +160,7 @@ export function WorkshopCalendar() {
                         ))}
                         {dayWorkshops.length > 2 && (
                           <div className="text-xs text-gray-500">
-                            +{dayWorkshops.length - 2} more
+                            +{dayWorkshops.length - 2} meer
                           </div>
                         )}
                       </div>
@@ -178,13 +178,13 @@ export function WorkshopCalendar() {
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">
                 {selectedDate 
-                  ? selectedDate.toLocaleDateString('en-US', { 
+                  ? selectedDate.toLocaleDateString('nl-NL', { 
                       weekday: 'long', 
                       year: 'numeric', 
                       month: 'long', 
                       day: 'numeric' 
                     })
-                  : 'Select a date'
+                  : 'Selecteer een datum'
                 }
               </h3>
             </div>
@@ -223,7 +223,7 @@ export function WorkshopCalendar() {
                               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                               </svg>
-                              {workshop.price > 0 ? `€${workshop.price}` : 'Free'}
+                              {workshop.price > 0 ? `€${workshop.price}` : 'Gratis'}
                             </div>
                           )}
                         </div>
@@ -238,10 +238,10 @@ export function WorkshopCalendar() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm">No workshops scheduled for this date.</p>
+                  <p className="text-gray-500 text-sm">Geen workshops gepland voor deze datum.</p>
                 )
               ) : (
-                <p className="text-gray-500 text-sm">Click on a date to see workshops.</p>
+                <p className="text-gray-500 text-sm">Klik op een datum om workshops te bekijken.</p>
               )}
             </div>
           </div>

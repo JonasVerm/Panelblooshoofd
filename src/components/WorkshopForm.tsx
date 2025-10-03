@@ -62,15 +62,15 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
           workshopId: workshop._id,
           ...workshopData,
         });
-        toast.success("Workshop updated successfully");
+        toast.success("Workshop succesvol bijgewerkt");
       } else {
         await createWorkshop(workshopData);
-        toast.success("Workshop created successfully");
+        toast.success("Workshop succesvol aangemaakt");
       }
 
       onClose();
     } catch (error) {
-      toast.error(workshop ? "Failed to update workshop" : "Failed to create workshop");
+      toast.error(workshop ? "Fout bij bijwerken workshop" : "Fout bij aanmaken workshop");
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +89,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-900">
-            {workshop ? "Edit Workshop" : "Create New Workshop"}
+            {workshop ? "Workshop Bewerken" : "Nieuwe Workshop Maken"}
           </h2>
           <button
             onClick={onClose}
@@ -106,7 +106,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
             {/* Title */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title *
+                Titel *
               </label>
               <input
                 type="text"
@@ -115,14 +115,14 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
                 onChange={handleChange}
                 required
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter workshop title"
+                placeholder="Voer workshop titel in"
               />
             </div>
 
             {/* Description */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                Beschrijving
               </label>
               <textarea
                 name="description"
@@ -130,14 +130,14 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
                 onChange={handleChange}
                 rows={4}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter workshop description"
+                placeholder="Voer workshop beschrijving in"
               />
             </div>
 
             {/* Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date *
+                Datum *
               </label>
               <input
                 type="date"
@@ -152,7 +152,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
             {/* Category */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category *
+                Categorie *
               </label>
               <select
                 name="category"
@@ -161,7 +161,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
                 required
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select a category</option>
+                <option value="">Selecteer een categorie</option>
                 {categories.map((category) => (
                   <option key={category} value={category}>
                     {category}
@@ -173,7 +173,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
             {/* Start Time */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Time *
+                Starttijd *
               </label>
               <input
                 type="time"
@@ -188,7 +188,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
             {/* End Time */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                End Time *
+                Eindtijd *
               </label>
               <input
                 type="time"
@@ -203,7 +203,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
             {/* Location */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location *
+                Locatie *
               </label>
               <input
                 type="text"
@@ -212,14 +212,14 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
                 onChange={handleChange}
                 required
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter location"
+                placeholder="Voer locatie in"
               />
             </div>
 
             {/* Teacher */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Teacher
+                Docent
               </label>
               <select
                 name="teacherId"
@@ -227,7 +227,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">No teacher assigned</option>
+                <option value="">Geen docent toegewezen</option>
                 {teachers?.map((teacher) => (
                   <option key={teacher._id} value={teacher._id}>
                     {teacher.name}
@@ -239,7 +239,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
             {/* Max Participants */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Participants *
+                Max Deelnemers *
               </label>
               <input
                 type="number"
@@ -249,14 +249,14 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
                 required
                 min="1"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter max participants"
+                placeholder="Voer max deelnemers in"
               />
             </div>
 
             {/* Price */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price (€) *
+                Prijs (€) *
               </label>
               <input
                 type="number"
@@ -267,7 +267,7 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
                 min="0"
                 step="0.01"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter price"
+                placeholder="Voer prijs in"
               />
             </div>
           </div>
@@ -279,14 +279,14 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
               onClick={onClose}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
             >
-              Cancel
+              Annuleren
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Saving..." : workshop ? "Update Workshop" : "Create Workshop"}
+              {isSubmitting ? "Opslaan..." : workshop ? "Workshop Bijwerken" : "Workshop Maken"}
             </button>
           </div>
         </form>
