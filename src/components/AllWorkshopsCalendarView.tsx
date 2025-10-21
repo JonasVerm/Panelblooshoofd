@@ -259,11 +259,6 @@ export function AllWorkshopsCalendarView() {
                       </div>
                     </div>
                     <div className="ml-4 text-right">
-                      {workshop.category && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {workshop.category}
-                        </span>
-                      )}
                       {workshop.price !== undefined && (
                         <div className="mt-2 text-lg font-semibold text-gray-900">
                           {workshop.price > 0 ? `€${workshop.price}` : 'Gratis'}

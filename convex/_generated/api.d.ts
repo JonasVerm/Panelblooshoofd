@@ -40,6 +40,7 @@ import type * as teachers from "../teachers.js";
 import type * as timeTracking from "../timeTracking.js";
 import type * as todos from "../todos.js";
 import type * as users from "../users.js";
+import type * as workshopFormTemplates from "../workshopFormTemplates.js";
 import type * as workshopForms from "../workshopForms.js";
 import type * as workshops from "../workshops.js";
 
@@ -79,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   timeTracking: typeof timeTracking;
   todos: typeof todos;
   users: typeof users;
+  workshopFormTemplates: typeof workshopFormTemplates;
   workshopForms: typeof workshopForms;
   workshops: typeof workshops;
 }>;

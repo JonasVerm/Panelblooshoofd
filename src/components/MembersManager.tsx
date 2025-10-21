@@ -21,6 +21,7 @@ interface MemberFormData {
 export function MembersManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState<Id<"members"> | null>(null);
+  const [viewingMember, setViewingMember] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<Id<"memberGroups"> | "">("");
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -71,6 +72,10 @@ export function MembersManager() {
     });
     setEditingMember(null);
     setShowForm(false);
+  };
+
+  const handleViewMember = (member: any) => {
+    setViewingMember(member);
   };
 
   const resetImport = () => {
@@ -289,9 +294,12 @@ export function MembersManager() {
       {/* Members List */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {members.map((member) => (
-          <div key={member._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <div key={member._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer">
             <div className="flex justify-between items-start mb-3">
-              <div>
+              <div 
+                className="flex-1"
+                onClick={() => handleViewMember(member)}
+              >
                 <h3 className="font-semibold text-gray-900">
                   {member.voornaam} {member.naam}
                 </h3>
@@ -342,7 +350,10 @@ export function MembersManager() {
 
             {/* Parent info */}
             {member.naamOuders && (
-              <div className="text-sm text-gray-600">
+              <div 
+                className="text-sm text-gray-600"
+                onClick={() => handleViewMember(member)}
+              >
                 <p><strong>Ouders:</strong> {member.naamOuders}</p>
                 {member.emailOuders && <p>{member.emailOuders}</p>}
                 {member.gsmOuders && <p>{member.gsmOuders}</p>}
@@ -665,6 +676,161 @@ export function MembersManager() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Member Detail Modal */}
+      {viewingMember && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">
+                Lid Details
+              </h3>
+              <button
+                onClick={() => setViewingMember(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Voornaam
+                  </label>
+                  <p className="text-gray-900">{viewingMember.voornaam}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Naam
+                  </label>
+                  <p className="text-gray-900">{viewingMember.naam}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    GSM Nummer
+                  </label>
+                  <p className="text-gray-900">{viewingMember.gsmNummer || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    E-mailadres
+                  </label>
+                  <p className="text-gray-900">{viewingMember.emailAdres || '-'}</p>
+                </div>
+              </div>
+
+              {viewingMember.naamOuders && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Naam Ouders/Voogd
+                    </label>
+                    <p className="text-gray-900">{viewingMember.naamOuders}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        E-mail Ouders
+                      </label>
+                      <p className="text-gray-900">{viewingMember.emailOuders || '-'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        GSM Ouders
+                      </label>
+                      <p className="text-gray-900">{viewingMember.gsmOuders || '-'}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {viewingMember.adres && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Adres
+                  </label>
+                  <p className="text-gray-900">{viewingMember.adres}</p>
+                </div>
+              )}
+
+              {viewingMember.rijksregisternummer && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Rijksregisternummer
+                  </label>
+                  <p className="text-gray-900">{viewingMember.rijksregisternummer}</p>
+                </div>
+              )}
+
+              {viewingMember.groupIds && viewingMember.groupIds.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Groepen
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingMember.groupIds.map((groupId) => {
+                      const group = groups?.find(g => g._id === groupId);
+                      return group ? (
+                        <span
+                          key={groupId}
+                          className="inline-block px-3 py-1 text-sm rounded-full text-white"
+                          style={{ backgroundColor: group.kleur }}
+                        >
+                          {group.naam}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {viewingMember.opmerkingen && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Opmerkingen
+                  </label>
+                  <p className="text-gray-900 whitespace-pre-wrap">{viewingMember.opmerkingen}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Lid sinds
+                </label>
+                <p className="text-gray-900">
+                  {new Date(viewingMember._creationTime).toLocaleDateString('nl-NL')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
+              <button
+                onClick={() => {
+                  setViewingMember(null);
+                  handleEdit(viewingMember);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Bewerken
+              </button>
+              <button
+                onClick={() => setViewingMember(null)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Sluiten
+              </button>
+            </div>
           </div>
         </div>
       )}

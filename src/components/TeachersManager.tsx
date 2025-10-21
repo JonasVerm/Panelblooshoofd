@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
@@ -12,7 +12,6 @@ export function TeachersManager() {
     email: "",
     phone: "",
     bio: "",
-    hourlyRate: 0,
     specialties: [] as string[],
     notes: "",
   });
@@ -21,6 +20,15 @@ export function TeachersManager() {
   const createTeacher = useMutation(api.teachers.createTeacher);
   const updateTeacher = useMutation(api.teachers.updateTeacher);
   const deleteTeacher = useMutation(api.teachers.deleteTeacher);
+  const ensureCalendarTokens = useMutation(api.teachers.ensureCalendarTokens);
+  const regenerateCalendarToken = useMutation(api.teachers.regenerateCalendarToken);
+
+  // Ensure all teachers have calendar tokens when component loads
+  useEffect(() => {
+    if (teachers && teachers.length > 0) {
+      ensureCalendarTokens().catch(console.error);
+    }
+  }, [teachers, ensureCalendarTokens]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,11 +67,21 @@ export function TeachersManager() {
       email: teacher.email || "",
       phone: teacher.phone || "",
       bio: teacher.bio || "",
-      hourlyRate: teacher.hourlyRate || 0,
       specialties: teacher.specialties || [],
       notes: teacher.notes || "",
     });
     setShowForm(true);
+  };
+
+  const handleRegenerateToken = async (teacherId: Id<"teachers">) => {
+    if (confirm("Weet je zeker dat je een nieuwe kalender token wilt genereren? De oude link werkt dan niet meer.")) {
+      try {
+        await regenerateCalendarToken({ id: teacherId });
+        toast.success("Nieuwe kalender token gegenereerd");
+      } catch (error) {
+        toast.error("Fout bij genereren nieuwe token");
+      }
+    }
   };
 
   const handleDelete = async (teacherId: Id<"teachers">) => {
@@ -83,7 +101,6 @@ export function TeachersManager() {
       email: "",
       phone: "",
       bio: "",
-      hourlyRate: 0,
       specialties: [],
       notes: "",
     });
@@ -95,7 +112,7 @@ export function TeachersManager() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'hourlyRate' ? Number(value) : value
+      [name]: value
     }));
   };
 
@@ -176,20 +193,7 @@ export function TeachersManager() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Uurtarief (€)
-                </label>
-                <input
-                  type="number"
-                  name="hourlyRate"
-                  value={formData.hourlyRate}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.01"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -285,7 +289,7 @@ export function TeachersManager() {
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Naam</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">E-mail</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Telefoon</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Uurtarief</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Kalender</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Acties</th>
                 </tr>
               </thead>
@@ -309,7 +313,21 @@ export function TeachersManager() {
                       {teacher.phone || "N.v.t."}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600">
-                      {teacher.hourlyRate ? `€${teacher.hourlyRate}/uur` : "N.v.t."}
+                      {teacher.calendarToken ? (
+                        <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/api/calendar?token=${teacher.calendarToken}`;
+                            navigator.clipboard.writeText(url);
+                            toast.success("Kalender link gekopieerd!");
+                          }}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                          title="Kopieer kalender link"
+                        >
+                          📅 ICS Link
+                        </button>
+                      ) : (
+                        <span className="text-gray-400">Geen token</span>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-2">
@@ -320,6 +338,15 @@ export function TeachersManager() {
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleRegenerateToken(teacher._id)}
+                          className="text-orange-600 hover:text-orange-800 p-1"
+                          title="Nieuwe kalender token genereren"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                           </svg>
                         </button>
                         <button

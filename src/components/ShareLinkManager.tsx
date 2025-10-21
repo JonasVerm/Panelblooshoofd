@@ -37,7 +37,19 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
 
   // Don't render if user doesn't have permission
   if (!canManageShareLinks) {
-    return null;
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Geen toegang</h3>
+          <p className="text-gray-500">Je hebt geen toegang tot deze functie.</p>
+        </div>
+      </div>
+    );
   }
 
   const handleCreateShareLink = async (e: React.FormEvent) => {
@@ -87,13 +99,19 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">🔗 Deel Links</h3>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Deel Links</h3>
+        </div>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="px-4 py-2 text-white rounded-md transition-all duration-200"
-          style={{ backgroundColor: "#2A3466" }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           {showCreateForm ? "Annuleren" : "Nieuwe Link"}
         </button>
@@ -109,7 +127,7 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
               <select
                 value={expirationDays || ""}
                 onChange={(e) => setExpirationDays(e.target.value ? Number(e.target.value) : undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Geen vervaldatum</option>
                 <option value="1">1 dag</option>
@@ -125,7 +143,7 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
                   type="checkbox"
                   checked={viewOnly}
                   onChange={(e) => setViewOnly(e.target.checked)}
-                  className="h-4 w-4 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <span className="ml-2 text-sm text-gray-700">
                   Alleen bekijken (geen download)
@@ -136,8 +154,7 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
             <button
               type="submit"
               disabled={isCreating}
-              className="w-full px-4 py-2 text-white rounded-md transition-all duration-200 disabled:opacity-50"
-              style={{ backgroundColor: "#B0BA4C" }}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isCreating ? "Aanmaken..." : "Deel Link Aanmaken"}
             </button>
@@ -151,18 +168,18 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
             <div key={link._id} className="p-4 border border-gray-200 rounded-lg">
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs rounded ${
+                    <span className={`px-2 py-1 text-xs rounded-full ${
                       link.viewOnly ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"
                     }`}>
                       {link.viewOnly ? "Alleen bekijken" : "Download toegestaan"}
                     </span>
                     {link.expiresAt && (
-                      <span className={`px-2 py-1 text-xs rounded ${
+                      <span className={`px-2 py-1 text-xs rounded-full ${
                         link.expiresAt < Date.now() ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
                       }`}>
                         {link.expiresAt < Date.now() 
                           ? "Verlopen" 
-                          : `Verloopt ${new Date(link.expiresAt).toLocaleDateString()}`
+                          : `Verloopt ${new Date(link.expiresAt).toLocaleDateString('nl-NL')}`
                         }
                       </span>
                     )}
@@ -170,13 +187,13 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => copyToClipboard(link.token)}
-                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     Kopiëren
                   </button>
                   <button
                     onClick={() => handleDeleteShareLink(link._id)}
-                    className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
                   >
                     Verwijderen
                   </button>
@@ -186,7 +203,14 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 text-sm">Geen deel links aangemaakt</p>
+        <div className="text-center py-8">
+          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+          <p className="text-gray-500 text-sm">Geen deel links aangemaakt</p>
+        </div>
       )}
     </div>
   );

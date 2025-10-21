@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { toast } from "sonner";
@@ -8,59 +8,100 @@ interface WorkshopFormProps {
   onClose: () => void;
 }
 
-export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
-  const [formData, setFormData] = useState({
-    title: workshop?.title || "",
-    description: workshop?.description || "",
-    date: workshop?.date ? new Date(workshop.date).toISOString().split('T')[0] : "",
-    startTime: workshop?.startTime || "",
-    endTime: workshop?.endTime || "",
-    location: workshop?.location || "",
-    maxParticipants: workshop?.maxParticipants || 0,
-    price: workshop?.price || 0,
-    category: workshop?.category || "",
-    teacherId: workshop?.teacherId || "",
-  });
+interface FormField {
+  id: string;
+  type: "text" | "textarea" | "select" | "radio" | "checkbox" | "email" | "tel" | "number" | "date";
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string[];
+  defaultValue?: string;
+  order: number;
+}
 
+export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
+  const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createWorkshop = useMutation(api.workshops.createWorkshop);
   const updateWorkshop = useMutation(api.workshops.updateWorkshop);
   const teachers = useQuery(api.teachers.listTeachers, {});
+  const formTemplate = useQuery(api.workshopFormTemplates.getDefaultFormTemplate);
 
-  const categories = [
-    "Algemeen",
-    "Technologie",
-    "Kunst & Creativiteit",
-    "Sport & Beweging",
-    "Wetenschap",
-    "Talen",
-    "Muziek",
-    "Andere"
-  ];
+  // Initialize form data when workshop or template changes
+  useEffect(() => {
+    if (workshop && formTemplate) {
+      // When editing, initialize with workshop data for all template fields
+      const initialData: Record<string, any> = {};
+      formTemplate.fields.forEach(field => {
+        // Use workshop data if available, otherwise use default values
+        if (workshop[field.id] !== undefined) {
+          if (field.type === "date" && workshop[field.id]) {
+            initialData[field.id] = new Date(workshop[field.id]).toISOString().split('T')[0];
+          } else {
+            initialData[field.id] = workshop[field.id];
+          }
+        } else {
+          initialData[field.id] = field.defaultValue || (field.type === "number" ? 0 : field.type === "checkbox" ? false : "");
+        }
+      });
+      setFormData(initialData);
+    } else if (!workshop && formTemplate) {
+      // Initialize with default values from template
+      const initialData: Record<string, any> = {};
+      formTemplate.fields.forEach(field => {
+        if (field.defaultValue) {
+          initialData[field.id] = field.defaultValue;
+        } else {
+          switch (field.type) {
+            case "number":
+              initialData[field.id] = 0;
+              break;
+            case "checkbox":
+              initialData[field.id] = false;
+              break;
+            default:
+              initialData[field.id] = "";
+          }
+        }
+      });
+      setFormData(initialData);
+    }
+  }, [workshop, formTemplate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      // Validate required fields
+      if (formTemplate) {
+        for (const field of formTemplate.fields) {
+          if (field.required && (!formData[field.id] || formData[field.id] === "")) {
+            toast.error(`${field.label} is verplicht`);
+            setIsSubmitting(false);
+            return;
+          }
+        }
+      }
+
       const workshopData = {
-        title: formData.title,
-        description: formData.description,
+        title: formData.title || "",
+        description: formData.description || "",
         date: new Date(formData.date).getTime(),
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        location: formData.location,
-        maxParticipants: Number(formData.maxParticipants),
-        price: Number(formData.price),
-        category: formData.category,
-        teacherId: formData.teacherId || undefined,
+        startTime: formData.startTime || "",
+        endTime: formData.endTime || "",
+        location: formData.location || "",
+        maxParticipants: Number(formData.maxParticipants) || 0,
+        price: Number(formData.price) || 0,
+        teacherId: formData.teacherId && formData.teacherId !== "" ? formData.teacherId : undefined,
       };
 
       if (workshop) {
         await updateWorkshop({
           workshopId: workshop._id,
           ...workshopData,
+          teacherId: workshopData.teacherId,
         });
         toast.success("Workshop succesvol bijgewerkt");
       } else {
@@ -76,13 +117,153 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (fieldId: string, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [fieldId]: value
     }));
   };
+
+  const renderField = (field: FormField) => {
+    const value = formData[field.id] || "";
+
+    switch (field.type) {
+      case "text":
+      case "email":
+      case "tel":
+        return (
+          <input
+            type={field.type}
+            value={value}
+            onChange={(e) => handleChange(field.id, e.target.value)}
+            required={field.required}
+            placeholder={field.placeholder}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        );
+
+      case "number":
+        return (
+          <input
+            type="number"
+            value={value}
+            onChange={(e) => handleChange(field.id, Number(e.target.value))}
+            required={field.required}
+            placeholder={field.placeholder}
+            min={field.id === "maxParticipants" ? "1" : "0"}
+            step={field.id === "price" ? "0.01" : "1"}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        );
+
+      case "date":
+        return (
+          <input
+            type="date"
+            value={value}
+            onChange={(e) => handleChange(field.id, e.target.value)}
+            required={field.required}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        );
+
+      case "textarea":
+        return (
+          <textarea
+            value={value}
+            onChange={(e) => handleChange(field.id, e.target.value)}
+            required={field.required}
+            placeholder={field.placeholder}
+            rows={4}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        );
+
+      case "select":
+        // Special handling for teacherId field
+        if (field.id === "teacherId") {
+          return (
+            <select
+              value={value}
+              onChange={(e) => handleChange(field.id, e.target.value)}
+              required={field.required}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Geen docent toegewezen</option>
+              {teachers?.map((teacher) => (
+                <option key={teacher._id} value={teacher._id}>
+                  {teacher.name}
+                </option>
+              ))}
+            </select>
+          );
+        }
+
+        return (
+          <select
+            value={value}
+            onChange={(e) => handleChange(field.id, e.target.value)}
+            required={field.required}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">{field.placeholder || "Selecteer een optie"}</option>
+            {field.options?.map((option, index) => (
+              <option key={index} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        );
+
+      case "radio":
+        return (
+          <div className="space-y-2">
+            {field.options?.map((option, index) => (
+              <label key={index} className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name={field.id}
+                  value={option}
+                  checked={value === option}
+                  onChange={(e) => handleChange(field.id, e.target.value)}
+                  required={field.required}
+                />
+                <span>{option}</span>
+              </label>
+            ))}
+          </div>
+        );
+
+      case "checkbox":
+        return (
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={value}
+              onChange={(e) => handleChange(field.id, e.target.checked)}
+              required={field.required}
+            />
+            <span>{field.placeholder || field.label}</span>
+          </label>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  if (!formTemplate) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Formulier laden...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const sortedFields = formTemplate.fields.sort((a, b) => a.order - b.order);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -103,173 +284,15 @@ export function WorkshopForm({ workshop, onClose }: WorkshopFormProps) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Title */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Titel *
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Voer workshop titel in"
-              />
-            </div>
-
-            {/* Description */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Beschrijving
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Voer workshop beschrijving in"
-              />
-            </div>
-
-            {/* Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Datum *
-              </label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Category */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Categorie *
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Selecteer een categorie</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Start Time */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Starttijd *
-              </label>
-              <input
-                type="time"
-                name="startTime"
-                value={formData.startTime}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* End Time */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Eindtijd *
-              </label>
-              <input
-                type="time"
-                name="endTime"
-                value={formData.endTime}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Location */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Locatie *
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Voer locatie in"
-              />
-            </div>
-
-            {/* Teacher */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Docent
-              </label>
-              <select
-                name="teacherId"
-                value={formData.teacherId}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Geen docent toegewezen</option>
-                {teachers?.map((teacher) => (
-                  <option key={teacher._id} value={teacher._id}>
-                    {teacher.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Max Participants */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Deelnemers *
-              </label>
-              <input
-                type="number"
-                name="maxParticipants"
-                value={formData.maxParticipants}
-                onChange={handleChange}
-                required
-                min="1"
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Voer max deelnemers in"
-              />
-            </div>
-
-            {/* Price */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prijs (€) *
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                required
-                min="0"
-                step="0.01"
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Voer prijs in"
-              />
-            </div>
+            {sortedFields.map((field) => (
+              <div key={field.id} className={field.type === "textarea" ? "md:col-span-2" : ""}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {field.label}
+                  {field.required && <span className="text-red-500 ml-1">*</span>}
+                </label>
+                {renderField(field)}
+              </div>
+            ))}
           </div>
 
           {/* Form Actions */}

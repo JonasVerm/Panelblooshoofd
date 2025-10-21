@@ -14,7 +14,6 @@ export const createWorkshop = mutation({
     location: v.string(),
     maxParticipants: v.number(),
     price: v.number(),
-    category: v.string(),
     teacherId: v.optional(v.id("teachers")),
     imageUrl: v.optional(v.string()),
   },
@@ -33,7 +32,6 @@ export const createWorkshop = mutation({
       location: args.location,
       maxParticipants: args.maxParticipants,
       price: args.price,
-      category: args.category,
       teacherId: args.teacherId,
       imageUrl: args.imageUrl,
       factuurStatus: "niet_verzonden",
@@ -58,7 +56,6 @@ export const createWorkshop = mutation({
 // List workshops
 export const listWorkshops = query({
   args: {
-    category: v.optional(v.string()),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
     limit: v.optional(v.number()),
@@ -66,22 +63,11 @@ export const listWorkshops = query({
   handler: async (ctx, args) => {
     const currentUser = await getCurrentUser(ctx);
 
-    let workshops;
-
-    if (args.category) {
-      workshops = await ctx.db
-        .query("workshops")
-        .withIndex("by_category", (q) => q.eq("category", args.category!))
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .order("desc")
-        .take(args.limit || 50);
-    } else {
-      workshops = await ctx.db
-        .query("workshops")
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .order("desc")
-        .take(args.limit || 50);
-    }
+    let workshops = await ctx.db
+      .query("workshops")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .order("desc")
+      .take(args.limit || 50);
 
     // Filter by date range if provided
     if (args.startDate || args.endDate) {
@@ -123,7 +109,6 @@ export const updateWorkshop = mutation({
     location: v.optional(v.string()),
     maxParticipants: v.optional(v.number()),
     price: v.optional(v.number()),
-    category: v.optional(v.string()),
     teacherId: v.optional(v.id("teachers")),
     imageUrl: v.optional(v.string()),
   },
@@ -147,8 +132,7 @@ export const updateWorkshop = mutation({
       location: args.location,
       maxParticipants: args.maxParticipants,
       price: args.price,
-      category: args.category,
-      teacherId: args.teacherId,
+      teacherId: args.teacherId || undefined,
       imageUrl: args.imageUrl,
       updatedAt: Date.now(),
     });
@@ -190,22 +174,6 @@ export const deleteWorkshop = mutation({
     });
 
     return args.workshopId;
-  },
-});
-
-// Get workshop categories
-export const getWorkshopCategories = query({
-  args: {},
-  handler: async (ctx) => {
-    const currentUser = await getCurrentUser(ctx);
-
-    const workshops = await ctx.db
-      .query("workshops")
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .collect();
-
-    const categories = [...new Set(workshops.map(w => w.category).filter(Boolean))];
-    return categories.sort();
   },
 });
 

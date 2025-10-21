@@ -4,27 +4,16 @@ import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { toast } from "sonner";
 import { WorkshopForm } from "./WorkshopForm";
+import { WorkshopFormBuilder } from "./WorkshopFormBuilder";
 
 export function WorkshopManager() {
   const [showForm, setShowForm] = useState(false);
+  const [showFormBuilder, setShowFormBuilder] = useState(false);
   const [editingWorkshop, setEditingWorkshop] = useState<any>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
-  const workshops = useQuery(api.workshops.listWorkshops, {
-    category: selectedCategory || undefined,
-  });
+  const workshops = useQuery(api.workshops.listWorkshops, {});
+  const teachers = useQuery(api.teachers.listTeachers, {});
   const deleteWorkshop = useMutation(api.workshops.deleteWorkshop);
-
-  const categories = [
-    "Algemeen",
-    "Technologie",
-    "Kunst & Creativiteit",
-    "Sport & Beweging",
-    "Wetenschap",
-    "Talen",
-    "Muziek",
-    "Andere"
-  ];
 
   const handleDelete = async (workshopId: Id<"workshops">) => {
     if (confirm("Weet je zeker dat je deze workshop wilt verwijderen?")) {
@@ -47,11 +36,23 @@ export function WorkshopManager() {
     setEditingWorkshop(null);
   };
 
+  const handleFormBuilderClose = () => {
+    setShowFormBuilder(false);
+  };
+
   if (showForm) {
     return (
       <WorkshopForm
         workshop={editingWorkshop}
         onClose={handleFormClose}
+      />
+    );
+  }
+
+  if (showFormBuilder) {
+    return (
+      <WorkshopFormBuilder
+        onClose={handleFormBuilderClose}
       />
     );
   }
@@ -64,33 +65,26 @@ export function WorkshopManager() {
           <h2 className="text-2xl font-bold text-gray-900">Workshop Beheer</h2>
           <p className="text-gray-600">Maak en beheer workshops</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Nieuwe Workshop</span>
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border">
-        <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700">Filter op categorie:</label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setShowFormBuilder(true)}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center space-x-2"
           >
-            <option value="">Alle Categorieën</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Formulier Aanpassen</span>
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Nieuwe Workshop</span>
+          </button>
         </div>
       </div>
 
@@ -124,8 +118,7 @@ export function WorkshopManager() {
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Datum</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Tijd</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Locatie</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Categorie</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Prijs</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Lesgever</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Acties</th>
                 </tr>
               </thead>
@@ -154,15 +147,11 @@ export function WorkshopManager() {
                     <td className="py-3 px-4 text-sm text-gray-600">
                       {workshop.location || "N.v.t."}
                     </td>
-                    <td className="py-3 px-4">
-                      {workshop.category && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {workshop.category}
-                        </span>
-                      )}
-                    </td>
                     <td className="py-3 px-4 text-sm text-gray-600">
-                      {workshop.price ? `€${workshop.price}` : "Gratis"}
+                      {workshop.teacherId 
+                        ? teachers?.find(t => t._id === workshop.teacherId)?.name || "Onbekende docent"
+                        : "Geen docent toegewezen"
+                      }
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-2">

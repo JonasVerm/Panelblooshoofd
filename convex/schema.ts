@@ -160,6 +160,7 @@ const applicationTables = {
     createdAt: v.optional(v.number()),
   }).index("by_token", ["token"])
     .index("by_document", ["documentId"])
+    .index("by_created_by", ["createdBy"])
     .index("by_active", ["isActive"]),
 
   // Passwords
@@ -193,8 +194,10 @@ const applicationTables = {
   expenses: defineTable({
     description: v.string(),
     amount: v.number(),
-    category: v.string(),
+    vendor: v.optional(v.string()),
+    category: v.optional(v.string()),
     date: v.number(),
+    status: v.optional(v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected"))),
     receipt: v.optional(v.id("_storage")),
     notes: v.optional(v.string()),
     isActive: v.boolean(),
@@ -204,7 +207,8 @@ const applicationTables = {
   }).index("by_created_by", ["createdBy"])
     .index("by_active", ["isActive"])
     .index("by_category", ["category"])
-    .index("by_date", ["date"]),
+    .index("by_date", ["date"])
+    .index("by_status", ["status"]),
 
   // Time Tracking
   timeEntries: defineTable({
@@ -229,6 +233,18 @@ const applicationTables = {
     .index("by_user", ["userId"])
     .index("by_user_and_date", ["userId", "date"]),
 
+  // Projects
+  projects: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    color: v.optional(v.string()),
+    isActive: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
+  }).index("by_active", ["isActive"])
+    .index("by_created_by", ["createdBy"]),
+
   // Workshops
   workshops: defineTable({
     title: v.optional(v.string()),
@@ -242,7 +258,6 @@ const applicationTables = {
     location: v.optional(v.string()),
     maxParticipants: v.optional(v.number()),
     price: v.optional(v.number()),
-    category: v.optional(v.string()),
     type: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     teacherId: v.optional(v.id("teachers")),
@@ -258,11 +273,32 @@ const applicationTables = {
     updatedAt: v.optional(v.number()),
   }).index("by_date", ["date"])
     .index("by_active", ["isActive"])
-    .index("by_category", ["category"])
     .index("by_created_by", ["createdBy"])
     .index("by_teacher", ["teacherId"]),
 
-  // Workshop Forms
+  // Workshop Form Templates
+  workshopFormTemplates: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    fields: v.array(v.object({
+      id: v.string(),
+      type: v.union(v.literal("text"), v.literal("textarea"), v.literal("select"), v.literal("radio"), v.literal("checkbox"), v.literal("email"), v.literal("tel"), v.literal("number"), v.literal("date")),
+      label: v.string(),
+      placeholder: v.optional(v.string()),
+      required: v.boolean(),
+      options: v.optional(v.array(v.string())),
+      defaultValue: v.optional(v.string()),
+      order: v.number(),
+    })),
+    isDefault: v.optional(v.boolean()),
+    isActive: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
+  }).index("by_active", ["isActive"])
+    .index("by_created_by", ["createdBy"])
+    .index("by_default", ["isDefault"]),
+
   workshopForms: defineTable({
     workshopId: v.id("workshops"),
     fields: v.array(v.object({
@@ -306,7 +342,7 @@ const applicationTables = {
     notes: v.optional(v.string()),
     specialties: v.optional(v.array(v.string())),
     bio: v.optional(v.string()),
-    hourlyRate: v.optional(v.number()),
+
     availability: v.optional(v.array(v.object({
       day: v.union(v.literal("monday"), v.literal("tuesday"), v.literal("wednesday"), v.literal("thursday"), v.literal("friday"), v.literal("saturday"), v.literal("sunday")),
       startTime: v.string(),

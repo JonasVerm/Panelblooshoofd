@@ -3,12 +3,27 @@ import { query, mutation } from "./_generated/server";
 import { getCurrentUser } from "./users";
 import { internal } from "./_generated/api";
 
+// Generate upload URL for receipts
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+// Get receipt URL
+export const getReceiptUrl = query({
+  args: { receiptId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.receiptId);
+  },
+});
+
 // Create expense
 export const createExpense = mutation({
   args: {
     description: v.string(),
     amount: v.number(),
-    category: v.string(),
     date: v.number(),
     receipt: v.optional(v.id("_storage")),
     notes: v.optional(v.string()),
@@ -19,10 +34,10 @@ export const createExpense = mutation({
     const expenseId = await ctx.db.insert("expenses", {
       description: args.description,
       amount: args.amount,
-      category: args.category,
       date: args.date,
       receipt: args.receipt,
       notes: args.notes,
+      status: "pending", // Default status
       isActive: true,
       createdBy: currentUser._id,
       createdAt: Date.now(),
@@ -34,7 +49,7 @@ export const createExpense = mutation({
       actor: currentUser._id,
       action: "CREATE_EXPENSE",
       target: `expense:${expenseId}`,
-      details: `Created expense: ${args.description} - €${args.amount}`,
+      details: `Created expense: ${args.description} - €${args.amount.toFixed(2)}`,
     });
 
     return expenseId;
@@ -44,30 +59,18 @@ export const createExpense = mutation({
 // List expenses
 export const listExpenses = query({
   args: {
-    limit: v.optional(v.number()),
-    category: v.optional(v.string()),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
+    limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const currentUser = await getCurrentUser(ctx);
 
-    let expenses;
-
-    if (args.category) {
-      expenses = await ctx.db
-        .query("expenses")
-        .withIndex("by_category", (q) => q.eq("category", args.category!))
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .order("desc")
-        .take(args.limit || 50);
-    } else {
-      expenses = await ctx.db
-        .query("expenses")
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .order("desc")
-        .take(args.limit || 50);
-    }
+    let expenses = await ctx.db
+      .query("expenses")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .order("desc")
+      .take(args.limit || 50);
 
     // Filter by date range if provided
     if (args.startDate || args.endDate) {
@@ -78,18 +81,7 @@ export const listExpenses = query({
       });
     }
 
-    // Add receipt URLs
-    const expensesWithUrls = await Promise.all(
-      expenses.map(async (expense) => {
-        let receiptUrl = null;
-        if (expense.receipt) {
-          receiptUrl = await ctx.storage.getUrl(expense.receipt);
-        }
-        return { ...expense, receiptUrl };
-      })
-    );
-
-    return expensesWithUrls;
+    return expenses;
   },
 });
 
@@ -104,12 +96,7 @@ export const getExpense = query({
       return null;
     }
 
-    let receiptUrl = null;
-    if (expense.receipt) {
-      receiptUrl = await ctx.storage.getUrl(expense.receipt);
-    }
-
-    return { ...expense, receiptUrl };
+    return expense;
   },
 });
 
@@ -119,10 +106,10 @@ export const updateExpense = mutation({
     expenseId: v.id("expenses"),
     description: v.optional(v.string()),
     amount: v.optional(v.number()),
-    category: v.optional(v.string()),
     date: v.optional(v.number()),
     receipt: v.optional(v.id("_storage")),
     notes: v.optional(v.string()),
+    status: v.optional(v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected"))),
   },
   handler: async (ctx, args) => {
     const currentUser = await getCurrentUser(ctx);
@@ -135,10 +122,10 @@ export const updateExpense = mutation({
     await ctx.db.patch(args.expenseId, {
       description: args.description,
       amount: args.amount,
-      category: args.category,
       date: args.date,
       receipt: args.receipt,
       notes: args.notes,
+      status: args.status,
       updatedAt: Date.now(),
     });
 
@@ -206,28 +193,56 @@ export const getExpenseStats = query({
     }
 
     const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-    const totalCount = expenses.length;
-
-    // Group by category
-    const byCategory = expenses.reduce((acc, expense) => {
-      acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
-      return acc;
-    }, {} as Record<string, number>);
+    const approvedAmount = expenses
+      .filter(e => e.status === "approved")
+      .reduce((sum, expense) => sum + expense.amount, 0);
+    const pendingAmount = expenses
+      .filter(e => e.status === "pending")
+      .reduce((sum, expense) => sum + expense.amount, 0);
 
     return {
+      totalExpenses: expenses.length,
       totalAmount,
-      totalCount,
-      byCategory,
-      expenses: expenses.slice(0, 10), // Recent 10 expenses
+      approvedAmount,
+      pendingAmount,
+      statusBreakdown: {
+        pending: expenses.filter(e => e.status === "pending").length,
+        approved: expenses.filter(e => e.status === "approved").length,
+        rejected: expenses.filter(e => e.status === "rejected").length,
+      },
     };
   },
 });
 
-// Generate upload URL for receipts
-export const generateReceiptUploadUrl = mutation({
-  args: {},
-  handler: async (ctx) => {
+// Update expense status (for admin use)
+export const updateExpenseStatus = mutation({
+  args: {
+    expenseId: v.id("expenses"),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
     const currentUser = await getCurrentUser(ctx);
-    return await ctx.storage.generateUploadUrl();
+    
+    const expense = await ctx.db.get(args.expenseId);
+    if (!expense) {
+      throw new Error("Expense not found");
+    }
+
+    await ctx.db.patch(args.expenseId, {
+      status: args.status,
+      notes: args.notes || expense.notes,
+      updatedAt: Date.now(),
+    });
+
+    // Log the status update
+    await ctx.runMutation(internal.audit.log, {
+      actor: currentUser._id,
+      action: "UPDATE_EXPENSE_STATUS",
+      target: `expense:${args.expenseId}`,
+      details: `Updated expense status to ${args.status}: ${expense.description}`,
+    });
+
+    return args.expenseId;
   },
 });

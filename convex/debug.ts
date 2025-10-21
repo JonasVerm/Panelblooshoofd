@@ -14,7 +14,6 @@ export const debugWorkshops = query({
       location: w.location,
       maxParticipants: w.maxParticipants,
       price: w.price,
-      category: w.category,
       isActive: w.isActive,
       createdAt: new Date(w._creationTime).toISOString(),
     }));

@@ -225,19 +225,6 @@ export function ActivitiesManager() {
         <h2 className="text-2xl font-bold text-gray-900">Activiteiten</h2>
         <div className="flex space-x-2">
           <button
-            onClick={async () => {
-              try {
-                const result = await fixRecurringActivities();
-                alert(result.message);
-              } catch (error) {
-                console.error("Error fixing recurring activities:", error);
-              }
-            }}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-          >
-            Herstel Herhalende
-          </button>
-          <button
             onClick={() => setShowForm(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >

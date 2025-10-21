@@ -168,6 +168,37 @@ export const deleteShareLink = mutation({
   },
 });
 
+// Get all share links for current user
+export const getAllShareLinks = query({
+  args: {},
+  handler: async (ctx) => {
+    const currentUser = await getCurrentUser(ctx);
+    
+    const shareLinks = await ctx.db
+      .query("shareLinks")
+      .withIndex("by_created_by", (q) => q.eq("createdBy", currentUser._id))
+      .collect();
+
+    // Get document info for each share link
+    const shareLinksWithDocuments = await Promise.all(
+      shareLinks.map(async (shareLink) => {
+        const document = await ctx.db.get(shareLink.documentId);
+        return {
+          ...shareLink,
+          document: document ? {
+            _id: document._id,
+            name: document.name,
+            title: document.title,
+            fileType: document.fileType,
+          } : null,
+        };
+      })
+    );
+
+    return shareLinksWithDocuments.filter(link => link.document !== null);
+  },
+});
+
 // Get document info for shared access (public)
 export const getSharedDocumentInfo = query({
   args: {

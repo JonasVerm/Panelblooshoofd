@@ -108,7 +108,8 @@ export const createPassword = mutation({
 // Update password
 export const updatePassword = mutation({
   args: {
-    passwordId: v.id("passwords"),
+    id: v.optional(v.id("passwords")),
+    passwordId: v.optional(v.id("passwords")),
     title: v.optional(v.string()),
     username: v.optional(v.string()),
     password: v.optional(v.string()),
@@ -125,12 +126,17 @@ export const updatePassword = mutation({
   handler: async (ctx, args) => {
     const currentUser = await getCurrentUser(ctx);
     
-    const password = await ctx.db.get(args.passwordId);
+    const passwordId = args.id || args.passwordId;
+    if (!passwordId) {
+      throw new Error("Password ID is required");
+    }
+    
+    const password = await ctx.db.get(passwordId);
     if (!password) {
       throw new Error("Password not found");
     }
 
-    await ctx.db.patch(args.passwordId, {
+    await ctx.db.patch(passwordId, {
       title: args.title,
       username: args.username,
       password: args.password,
@@ -151,26 +157,34 @@ export const updatePassword = mutation({
     await ctx.runMutation(internal.audit.log, {
       actor: currentUser._id,
       action: "UPDATE_PASSWORD",
-      target: `password:${args.passwordId}`,
+      target: `password:${passwordId}`,
       details: `Updated password: ${password.title}`,
     });
 
-    return args.passwordId;
+    return passwordId;
   },
 });
 
 // Delete password
 export const deletePassword = mutation({
-  args: { passwordId: v.id("passwords") },
+  args: { 
+    id: v.optional(v.id("passwords")),
+    passwordId: v.optional(v.id("passwords"))
+  },
   handler: async (ctx, args) => {
     const currentUser = await getCurrentUser(ctx);
     
-    const password = await ctx.db.get(args.passwordId);
+    const passwordId = args.id || args.passwordId;
+    if (!passwordId) {
+      throw new Error("Password ID is required");
+    }
+    
+    const password = await ctx.db.get(passwordId);
     if (!password) {
       throw new Error("Password not found");
     }
 
-    await ctx.db.patch(args.passwordId, {
+    await ctx.db.patch(passwordId, {
       isActive: false,
       updatedAt: Date.now(),
     });
@@ -179,11 +193,11 @@ export const deletePassword = mutation({
     await ctx.runMutation(internal.audit.log, {
       actor: currentUser._id,
       action: "DELETE_PASSWORD",
-      target: `password:${args.passwordId}`,
+      target: `password:${passwordId}`,
       details: `Deleted password: ${password.title}`,
     });
 
-    return args.passwordId;
+    return passwordId;
   },
 });
 
@@ -202,3 +216,58 @@ export const getPasswordCategories = query({
     return categories.sort();
   },
 });
+
+// Aliases for PasswordsApp compatibility
+export const getPasswords = query({
+  args: {},
+  handler: async (ctx) => {
+    const currentUser = await getCurrentUser(ctx);
+
+    const passwords = await ctx.db
+      .query("passwords")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .order("desc")
+      .collect();
+
+    return passwords.map(password => ({
+      ...password,
+      strength: calculatePasswordStrength(password.password),
+    }));
+  },
+});
+
+export const getCategories = query({
+  args: {},
+  handler: async (ctx) => {
+    const currentUser = await getCurrentUser(ctx);
+
+    const passwords = await ctx.db
+      .query("passwords")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    const categories = [...new Set(passwords.map(p => p.category).filter(Boolean))];
+    return categories.sort();
+  },
+});
+
+// Helper function to calculate password strength
+function calculatePasswordStrength(password: string): "weak" | "medium" | "strong" {
+  if (!password) return "weak";
+  
+  let score = 0;
+  
+  // Length check
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  
+  // Character variety checks
+  if (/[a-z]/.test(password)) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  
+  if (score <= 2) return "weak";
+  if (score <= 4) return "medium";
+  return "strong";
+}
