@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Toaster } from "sonner";
@@ -8,6 +8,7 @@ import { FrontpageDashboard } from "./components/FrontpageDashboard";
 import { TodoApp } from "./apps/TodoApp";
 import { LedenbeheerApp } from "./apps/LedenbeheerApp";
 import { DocumentsApp } from "./apps/DocumentsApp";
+import { BookRoomPage } from "./components/BookRoomPage";
 
 import { WorkshopsApp } from "./apps/WorkshopsApp";
 import { PasswordsApp } from "./apps/PasswordsApp";
@@ -28,12 +29,44 @@ type AppType =
   | "management" 
   | "social-media"
   | "room-reservations"
+  | "book-room"
   | "todos";
 
 export default function App() {
   const user = useQuery(api.auth.loggedInUser);
   const [currentApp, setCurrentApp] = useState<AppType>("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Handle URL routing
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === "/book-room") {
+      setCurrentApp("book-room");
+    }
+
+    // Listen for browser back/forward navigation
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === "/book-room") {
+        setCurrentApp("book-room");
+      } else {
+        setCurrentApp("dashboard");
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Update URL when app changes
+  const handleAppChange = (appId: AppType) => {
+    setCurrentApp(appId);
+    if (appId === "book-room") {
+      window.history.pushState({}, "", "/book-room");
+    } else {
+      window.history.pushState({}, "", "/");
+    }
+  };
 
   if (user === undefined) {
     return (
@@ -47,6 +80,10 @@ export default function App() {
   }
 
   if (user === null) {
+    // If user is not logged in and trying to access /book-room, show the booking page
+    if (window.location.pathname === "/book-room") {
+      return <BookRoomPage />;
+    }
     return <SignInForm />;
   }
 
@@ -157,7 +194,7 @@ export default function App() {
   const renderCurrentApp = () => {
     switch (currentApp) {
       case "dashboard":
-        return <FrontpageDashboard onSelectApp={setCurrentApp} user={user} />;
+        return <FrontpageDashboard onSelectApp={handleAppChange} user={user} />;
       case "todos":
         return <TodoApp />;
       case "ledenbeheer":
@@ -174,12 +211,14 @@ export default function App() {
         return <WorkshopsApp />;
       case "room-reservations":
         return <RoomReservationApp />;
+      case "book-room":
+        return <BookRoomPage />;
       case "social-media":
         return <SocialMediaApp />;
       case "management":
         return <ManagementApp />;
       default:
-        return <FrontpageDashboard onSelectApp={setCurrentApp} user={user} />;
+        return <FrontpageDashboard onSelectApp={handleAppChange} user={user} />;
     }
   };
 
@@ -187,6 +226,16 @@ export default function App() {
     if (currentApp === "dashboard") return "Dashboard";
     return apps.find(app => app.id === currentApp)?.name || "Dashboard";
   };
+
+  // Special case: if we're on /book-room, show just the booking page without sidebar
+  if (currentApp === "book-room") {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <BookRoomPage />
+        <Toaster position="top-right" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -221,7 +270,7 @@ export default function App() {
           {apps.map((app) => (
             <button
               key={app.id}
-              onClick={() => setCurrentApp(app.id)}
+              onClick={() => handleAppChange(app.id)}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                 currentApp === app.id
                   ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
