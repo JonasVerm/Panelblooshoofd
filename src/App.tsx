@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { SignInForm } from "./SignInForm";
 import { SignOutButton } from "./SignOutButton";
@@ -32,41 +33,20 @@ type AppType =
   | "book-room"
   | "todos";
 
-export default function App() {
+function PublicBookingPage() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <BookRoomPage />
+      <Toaster position="top-right" />
+    </div>
+  );
+}
+
+function AuthenticatedApp() {
   const user = useQuery(api.auth.loggedInUser);
-  const [currentApp, setCurrentApp] = useState<AppType>("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  // Handle URL routing
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === "/book-room") {
-      setCurrentApp("book-room");
-    }
-
-    // Listen for browser back/forward navigation
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      if (path === "/book-room") {
-        setCurrentApp("book-room");
-      } else {
-        setCurrentApp("dashboard");
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
-
-  // Update URL when app changes
-  const handleAppChange = (appId: AppType) => {
-    setCurrentApp(appId);
-    if (appId === "book-room") {
-      window.history.pushState({}, "", "/book-room");
-    } else {
-      window.history.pushState({}, "", "/");
-    }
-  };
+  const navigate = useNavigate();
+  const location = useLocation();
 
   if (user === undefined) {
     return (
@@ -80,10 +60,6 @@ export default function App() {
   }
 
   if (user === null) {
-    // If user is not logged in and trying to access /book-room, show the booking page
-    if (window.location.pathname === "/book-room") {
-      return <BookRoomPage />;
-    }
     return <SignInForm />;
   }
 
@@ -91,6 +67,7 @@ export default function App() {
     { 
       id: "dashboard" as const, 
       name: "Dashboard", 
+      path: "/",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2v2zm0 0h18M9 11h6" />
@@ -100,6 +77,7 @@ export default function App() {
     { 
       id: "todos" as const, 
       name: "Taken", 
+      path: "/todos",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -109,6 +87,7 @@ export default function App() {
     { 
       id: "ledenbeheer" as const, 
       name: "Leden", 
+      path: "/leden",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
@@ -118,6 +97,7 @@ export default function App() {
     { 
       id: "documents" as const, 
       name: "Documenten", 
+      path: "/documenten",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -127,6 +107,7 @@ export default function App() {
     { 
       id: "workshops" as const, 
       name: "Workshops", 
+      path: "/workshops",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -136,6 +117,7 @@ export default function App() {
     { 
       id: "room-reservations" as const, 
       name: "Ruimte Reserveringen", 
+      path: "/ruimtes",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -145,6 +127,7 @@ export default function App() {
     { 
       id: "social-media" as const, 
       name: "Social Media", 
+      path: "/social-media",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 011 1v1a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1h4z" />
@@ -155,6 +138,7 @@ export default function App() {
     { 
       id: "passwords" as const, 
       name: "Wachtwoorden", 
+      path: "/wachtwoorden",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -164,6 +148,7 @@ export default function App() {
     { 
       id: "expenses" as const, 
       name: "Uitgaven", 
+      path: "/uitgaven",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -173,6 +158,7 @@ export default function App() {
     { 
       id: "time-tracking" as const, 
       name: "Tijdregistratie", 
+      path: "/tijdregistratie",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -182,6 +168,7 @@ export default function App() {
     { 
       id: "management" as const, 
       name: "Beheer", 
+      path: "/beheer",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -191,51 +178,19 @@ export default function App() {
     },
   ];
 
-  const renderCurrentApp = () => {
-    switch (currentApp) {
-      case "dashboard":
-        return <FrontpageDashboard onSelectApp={handleAppChange} user={user} />;
-      case "todos":
-        return <TodoApp />;
-      case "ledenbeheer":
-        return <LedenbeheerApp />;
-      case "documents":
-        return <DocumentsApp />;
-      case "passwords":
-        return <PasswordsApp />;
-      case "expenses":
-        return <ExpensesApp />;
-      case "time-tracking":
-        return <TimeTrackingApp />;
-      case "workshops":
-        return <WorkshopsApp />;
-      case "room-reservations":
-        return <RoomReservationApp />;
-      case "book-room":
-        return <BookRoomPage />;
-      case "social-media":
-        return <SocialMediaApp />;
-      case "management":
-        return <ManagementApp />;
-      default:
-        return <FrontpageDashboard onSelectApp={handleAppChange} user={user} />;
-    }
+  const handleAppChange = (path: string) => {
+    navigate(path);
   };
 
   const getCurrentAppName = () => {
-    if (currentApp === "dashboard") return "Dashboard";
-    return apps.find(app => app.id === currentApp)?.name || "Dashboard";
+    const currentApp = apps.find(app => app.path === location.pathname);
+    return currentApp?.name || "Dashboard";
   };
 
-  // Special case: if we're on /book-room, show just the booking page without sidebar
-  if (currentApp === "book-room") {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <BookRoomPage />
-        <Toaster position="top-right" />
-      </div>
-    );
-  }
+  const getCurrentAppId = (): AppType => {
+    const currentApp = apps.find(app => app.path === location.pathname);
+    return currentApp?.id || "dashboard";
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -270,15 +225,15 @@ export default function App() {
           {apps.map((app) => (
             <button
               key={app.id}
-              onClick={() => handleAppChange(app.id)}
+              onClick={() => handleAppChange(app.path)}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                currentApp === app.id
+                location.pathname === app.path
                   ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
               }`}
               title={sidebarCollapsed ? app.name : undefined}
             >
-              <span className={`${currentApp === app.id ? 'text-blue-700' : 'text-gray-400'}`}>
+              <span className={`${location.pathname === app.path ? 'text-blue-700' : 'text-gray-400'}`}>
                 {app.icon}
               </span>
               {!sidebarCollapsed && (
@@ -334,11 +289,37 @@ export default function App() {
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto">
-          {renderCurrentApp()}
+          <Routes>
+            <Route path="/" element={<FrontpageDashboard onSelectApp={handleAppChange} user={user} />} />
+            <Route path="/todos" element={<TodoApp />} />
+            <Route path="/leden" element={<LedenbeheerApp />} />
+            <Route path="/documenten" element={<DocumentsApp />} />
+            <Route path="/wachtwoorden" element={<PasswordsApp />} />
+            <Route path="/uitgaven" element={<ExpensesApp />} />
+            <Route path="/tijdregistratie" element={<TimeTrackingApp />} />
+            <Route path="/workshops" element={<WorkshopsApp />} />
+            <Route path="/ruimtes" element={<RoomReservationApp />} />
+            <Route path="/social-media" element={<SocialMediaApp />} />
+            <Route path="/beheer" element={<ManagementApp />} />
+          </Routes>
         </main>
       </div>
       
       <Toaster position="top-right" />
     </div>
+  );
+}
+
+export default function App() {
+  const user = useQuery(api.auth.loggedInUser);
+
+  return (
+    <Routes>
+      {/* Public booking route - accessible without authentication */}
+      <Route path="/book-room" element={<PublicBookingPage />} />
+      
+      {/* All other routes require authentication */}
+      <Route path="/*" element={<AuthenticatedApp />} />
+    </Routes>
   );
 }
