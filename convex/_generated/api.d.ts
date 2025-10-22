@@ -33,6 +33,7 @@ import type * as members from "../members.js";
 import type * as passwords from "../passwords.js";
 import type * as permissions from "../permissions.js";
 import type * as reports from "../reports.js";
+import type * as roomReservations from "../roomReservations.js";
 import type * as router from "../router.js";
 import type * as shareLinks from "../shareLinks.js";
 import type * as socialMedia from "../socialMedia.js";
@@ -73,6 +74,7 @@ declare const fullApi: ApiFromModules<{
   passwords: typeof passwords;
   permissions: typeof permissions;
   reports: typeof reports;
+  roomReservations: typeof roomReservations;
   router: typeof router;
   shareLinks: typeof shareLinks;
   socialMedia: typeof socialMedia;

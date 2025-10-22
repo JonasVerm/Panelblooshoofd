@@ -580,6 +580,76 @@ const applicationTables = {
       searchField: "name",
       filterFields: ["isActive", "category"],
     }),
+
+  // Room Reservation System
+  rooms: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    capacity: v.optional(v.number()),
+    equipment: v.optional(v.array(v.string())),
+    color: v.optional(v.string()),
+    isActive: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_active", ["isActive"])
+    .index("by_created_by", ["createdBy"]),
+
+  // Room Availability Schedule - defines when rooms are available
+  roomAvailability: defineTable({
+    roomId: v.id("rooms"),
+    dayOfWeek: v.union(
+      v.literal("monday"),
+      v.literal("tuesday"), 
+      v.literal("wednesday"),
+      v.literal("thursday"),
+      v.literal("friday"),
+      v.literal("saturday"),
+      v.literal("sunday")
+    ),
+    startTime: v.string(), // e.g., "09:00"
+    endTime: v.string(),   // e.g., "22:00"
+    isActive: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_room", ["roomId"])
+    .index("by_room_day", ["roomId", "dayOfWeek"])
+    .index("by_active", ["isActive"]),
+
+  roomReservations: defineTable({
+    roomId: v.id("rooms"),
+    customerName: v.string(),
+    customerEmail: v.optional(v.string()),
+    customerPhone: v.optional(v.string()),
+    date: v.string(),
+    startTime: v.string(),
+    endTime: v.string(),
+    purpose: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    status: v.union(v.literal("confirmed"), v.literal("pending"), v.literal("cancelled")),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_room", ["roomId"])
+    .index("by_date", ["date"])
+    .index("by_room_date", ["roomId", "date"])
+    .index("by_active", ["isActive"]),
+
+  roomUnavailability: defineTable({
+    roomId: v.id("rooms"),
+    date: v.string(),
+    startTime: v.string(),
+    endTime: v.string(),
+    reason: v.optional(v.string()),
+    isActive: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_room", ["roomId"])
+    .index("by_date", ["date"])
+    .index("by_room_date", ["roomId", "date"])
+    .index("by_active", ["isActive"]),
 };
 
 export default defineSchema({
