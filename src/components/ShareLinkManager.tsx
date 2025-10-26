@@ -15,17 +15,14 @@ export function ShareLinkManager({ documentId }: ShareLinkManagerProps) {
   const [isCreating, setIsCreating] = useState(false);
 
   const currentUser = useQuery(api.users.getCurrentUserQuery);
-  const permissions = useQuery(api.permissions.getUserPermissions, {});
   const document = useQuery(api.documents.getDocument, {
     documentId: documentId as Id<"documents">
   });
 
   // Only fetch share links if user has permission (can access the document)
-  const canManageShareLinks = currentUser && document && permissions &&
-    (permissions.canAccessManagement || 
-     document.createdBy === currentUser._id ||
-     document.allowedUserIds?.includes(currentUser._id) ||
-     document.allowedRoles?.includes("admin") && permissions.canAccessManagement);
+  const canManageShareLinks = currentUser && document && 
+    (document.createdBy === currentUser._id ||
+     document.allowedUserIds?.includes(currentUser._id));
 
   const shareLinks = useQuery(
     api.shareLinks.getShareLinks,

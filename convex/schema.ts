@@ -163,6 +163,38 @@ const applicationTables = {
     .index("by_created_by", ["createdBy"])
     .index("by_active", ["isActive"]),
 
+  // Contact Categories
+  contactCategories: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    color: v.string(),
+    isActive: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_active", ["isActive"])
+    .index("by_created_by", ["createdBy"]),
+
+  // Contacts
+  contacts: defineTable({
+    name: v.string(),
+    phoneNumber: v.optional(v.string()),
+    email: v.optional(v.string()),
+    company: v.optional(v.string()),
+    categoryId: v.optional(v.id("contactCategories")),
+    notes: v.optional(v.string()),
+    isActive: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_active", ["isActive"])
+    .index("by_category", ["categoryId", "isActive"])
+    .index("by_created_by", ["createdBy"])
+    .searchIndex("search_contacts", {
+      searchField: "name",
+      filterFields: ["isActive"],
+    }),
+
   // Passwords
   passwords: defineTable({
     title: v.string(),

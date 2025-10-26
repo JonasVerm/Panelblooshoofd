@@ -19,6 +19,7 @@ import type * as audit from "../audit.js";
 import type * as auth from "../auth.js";
 import type * as backup from "../backup.js";
 import type * as campaigns from "../campaigns.js";
+import type * as contacts from "../contacts.js";
 import type * as debug from "../debug.js";
 import type * as documents from "../documents.js";
 import type * as expenses from "../expenses.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   backup: typeof backup;
   campaigns: typeof campaigns;
+  contacts: typeof contacts;
   debug: typeof debug;
   documents: typeof documents;
   expenses: typeof expenses;

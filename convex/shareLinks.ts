@@ -19,10 +19,8 @@ export const generateShareLink = mutation({
     }
 
     // Check if user can access the document
-    const canAccess = currentUser.role === "admin" || 
-                     document.createdBy === currentUser._id ||
-                     (document.allowedUserIds?.includes(currentUser._id) ?? false) ||
-                     (document.allowedRoles?.includes(currentUser.role) ?? false);
+    const canAccess = document.createdBy === currentUser._id ||
+                     (document.allowedUserIds?.includes(currentUser._id) ?? false);
     
     if (!canAccess) {
       throw new Error("Access denied");
@@ -68,10 +66,8 @@ export const getShareLinks = query({
     }
 
     // Check if user can access the document
-    const canAccess = currentUser.role === "admin" || 
-                     document.createdBy === currentUser._id ||
-                     (document.allowedUserIds?.includes(currentUser._id) ?? false) ||
-                     (document.allowedRoles?.includes(currentUser.role) ?? false);
+    const canAccess = document.createdBy === currentUser._id ||
+                     (document.allowedUserIds?.includes(currentUser._id) ?? false);
     
     if (!canAccess) {
       throw new Error("Access denied");
@@ -148,10 +144,8 @@ export const deleteShareLink = mutation({
     }
 
     // Check if user can access the document
-    const canAccess = currentUser.role === "admin" || 
-                     document.createdBy === currentUser._id ||
-                     (document.allowedUserIds?.includes(currentUser._id) ?? false) ||
-                     (document.allowedRoles?.includes(currentUser.role) ?? false);
+    const canAccess = document.createdBy === currentUser._id ||
+                     (document.allowedUserIds?.includes(currentUser._id) ?? false);
     
     if (!canAccess) {
       throw new Error("Access denied");

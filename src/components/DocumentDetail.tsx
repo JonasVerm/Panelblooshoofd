@@ -65,37 +65,149 @@ export function DocumentDetail({ documentId, onBack }: DocumentDetailProps) {
         );
       
       case "word":
+        return (
+          <div className="space-y-4">
+            <div className="p-8 border border-gray-300 rounded-lg bg-gray-50 text-center">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">Word Document</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Preview niet beschikbaar voor Word documenten.<br />
+                    Download het bestand om het te bekijken.
+                  </p>
+                  <a
+                    href={fileUrl}
+                    download
+                    className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Word Document
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
       case "excel":
         return (
-          <div className="p-8 border border-gray-300 rounded-lg text-center">
-            <div className="mb-4">
-              <div className="text-6xl mb-4">
-                {document.fileType === "word" ? "📝" : "📊"}
+          <div className="space-y-4">
+            <div className="p-8 border border-gray-300 rounded-lg bg-gray-50 text-center">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">Excel Spreadsheet</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Preview niet beschikbaar voor Excel bestanden.<br />
+                    Download het bestand om het te bekijken.
+                  </p>
+                  <a
+                    href={fileUrl}
+                    download
+                    className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Excel Bestand
+                  </a>
+                </div>
               </div>
-              <h3 className="text-lg font-medium text-gray-900">
-                {document.fileType === "word" ? "Word Document" : "Excel Spreadsheet"}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Preview not available. Download to view in Office.
-              </p>
             </div>
-            <a
-              href={fileUrl}
-              download
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          </div>
+        );
+
+      case "image":
+        return (
+          <div className="border border-gray-300 rounded-lg overflow-hidden">
+            <img
+              src={fileUrl}
+              alt={document.title || document.name}
+              className="w-full h-auto max-h-[600px] object-contain"
+            />
+          </div>
+        );
+
+      case "video":
+        return (
+          <div className="border border-gray-300 rounded-lg overflow-hidden">
+            <video
+              controls
+              className="w-full h-auto max-h-[600px]"
+              preload="metadata"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Download
-            </a>
+              <source src={fileUrl} />
+              Your browser does not support the video element.
+            </video>
+          </div>
+        );
+
+      case "text":
+        return (
+          <div className="p-8 border border-gray-300 rounded-lg bg-gray-50 text-center">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Tekstbestand</h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Download het bestand om de inhoud te bekijken.
+                </p>
+                <a
+                  href={fileUrl}
+                  download
+                  className="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download Bestand
+                </a>
+              </div>
+            </div>
           </div>
         );
       
       default:
         return (
-          <div className="p-6 border border-gray-300 rounded-lg text-center">
-            <p className="text-gray-600">Preview not available</p>
+          <div className="p-8 border border-gray-300 rounded-lg bg-gray-50 text-center">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Onbekend Bestandstype</h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Preview niet beschikbaar voor dit bestandstype.
+                </p>
+                <a
+                  href={fileUrl}
+                  download
+                  className="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download Bestand
+                </a>
+              </div>
+            </div>
           </div>
         );
     }
